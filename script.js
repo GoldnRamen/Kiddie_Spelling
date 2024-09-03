@@ -376,6 +376,7 @@ function formatTime(seconds) {
 }
 
 function startCountdown() {
+    clearInterval(countdownInterval);
     countdownInterval = setInterval(() => {
         document.getElementById('countdown').textContent = formatTime(timeLeft);
         timeLeft--;
@@ -383,7 +384,7 @@ function startCountdown() {
         if (timeLeft < 0) {
             clearInterval(countdownInterval);
             document.getElementById('countdown').textContent = "00:00";
-            checkSpelling(); // Automatically check spelling when timer is up
+            checkSpelling()
         }
     }, 1000); 
 }
@@ -403,7 +404,7 @@ function loadNextImage() {
                 <label id="userInput" contenteditable="true" class="bg-slate-100 w-[80%] h-14"></label>
             </div>
         `;
-        timeLeft = 30; // Reset time for each new image
+        timeLeft = 30
         startCountdown();
     } else {
         document.getElementById("textbody").innerHTML = `
@@ -421,28 +422,51 @@ function loadNextImage() {
     }
 }
 
+
+
 function checkSpelling() {
     const userInput = document.getElementById("userInput").textContent.trim().toLowerCase();
     const correctWord = images[currentImageIndex].word;
 
     if (userInput === correctWord) {
         correctCount++;
+        currentImageIndex++;
+        pauseCountdown()
         document.getElementById("textbody").innerHTML = `
         <div class="border rounded-lg p-5 bg-green-800 w-fit h-fit m-auto"><p class="bg-slate-300 relative w-fit p-4 rounded-lg mx-auto h-fit my-auto animate-bounce text-green shadow-xl shadow-black">Correct!</p></div>`;
-    } else if (userInput === " " && timeLeft == 0) {
+        
+        setTimeout(() => {
+            loadNextImage();
+        }, 1000);
+
+    } 
+    else if (userInput === "" && timeLeft === 0) {
         document.getElementById("textbody").innerHTML = `
         <div class="border rounded-lg p-5 bg-yellow-800 w-fit h-fit m-auto"><p class="bg-slate-300 relative w-fit p-4 rounded-lg mx-auto h-fit my-auto animate-bounce text-white shadow-xl shadow-black">You made no entries</p></div>`;
-    } else {
-        incorrectCount++;
-        document.getElementById("textbody").innerHTML = `
-        <div class="border rounded-lg p-5 bg-red-900 w-fit h-fit m-auto"><p class="bg-slate-300 relative w-fit p-4 rounded-lg mx-auto h-fit my-auto animate-bounce text-red-950 shadow-xl shadow-black">Incorrect</p></div>`;
-    }
-    
-    setTimeout(() => {
         currentImageIndex++;
-        loadNextImage();
-    }, 1000);
+
+        setTimeout(() => {
+            loadNextImage();
+        }, 1000);
+    } 
+    else if (userInput !== correctWord && timeLeft > 0) {
+        document.getElementById("textbody").innerHTML = `
+        <div class="border rounded-lg p-5 bg-yellow-500 w-fit h-fit m-auto"><p class="bg-slate-300 relative w-fit p-4 rounded-lg mx-auto h-fit my-auto animate-bounce text-white shadow-xl shadow-black">Wrong. Try again</p></div>`;  
+        return;
+    } 
+    else if (userInput !== correctWord && timeLeft === 0) {
+        incorrectCount++;
+        currentImageIndex++;
+        pauseCountdown()
+        document.getElementById("textbody").innerHTML = `
+        <div class="border rounded-lg p-5 bg-red-900 w-fit h-fit m-auto"><p class="bg-slate-300 relative w-fit p-4 rounded-lg mx-auto h-fit my-auto animate-bounce text-red-950 shadow-xl shadow-black">Incorrect. Moving to the next image.</p></div>`;
+        
+        setTimeout(() => {
+            loadNextImage();
+        }, 1000);
+    }
 }
+
 
 function reloadGame() {
     currentImageIndex = 0;
@@ -462,4 +486,7 @@ clickLoad.addEventListener("click", function() {
     loadNextImage();
 });
 
-document.getElementById("submit").addEventListener("click", checkSpelling);
+document.getElementById("submit").addEventListener("click",function(){
+    checkSpelling()
+
+});
